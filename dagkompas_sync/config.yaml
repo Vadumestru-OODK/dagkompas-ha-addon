@@ -1,0 +1,22 @@
+name: Dagkompas Sync
+version: "1.0.0"
+slug: dagkompas_sync
+description: Privé opslag voor de planner Dagkompas (taken, dagritme, weekdoelen)
+url: https://dagkompas.oodk.nl
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+ports:
+  8092/tcp: 8092
+ports_description:
+  8092/tcp: Sync-server voor Dagkompas (via Nginx Proxy Manager naar buiten)
+map:
+  - type: share
+    read_only: false
+options:
+  token: ""
+schema:
+  token: password

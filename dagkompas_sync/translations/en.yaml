@@ -1,0 +1,6 @@
+configuration:
+  token:
+    name: Token
+    description: The same token as in Dagkompas under "Sync-server". Use a long, random token, different from the one for Opticien Sync.
+network:
+  8092/tcp: Sync server for Dagkompas

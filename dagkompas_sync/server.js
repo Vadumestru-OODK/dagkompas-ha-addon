@@ -8,6 +8,9 @@
 //   - Verwijderen gebeurt met een markering, zodat andere toestellen het ook horen.
 //   - Elke dag een kopie van de database in de map 'backups' (laatste 30 dagen).
 //
+//   - Optioneel: leest je Google Agenda (alleen lezen) via het geheime iCal-adres en geeft de afspraken
+//     per dag aan de app (GET /api/agenda). Zie agenda.js.
+//
 // Geen extra installatie nodig: SQLite zit in Node.js 22.13 en hoger.
 // Starten op een pc: SYNC_TOKEN=jouw-lange-token node server.js
 
@@ -15,6 +18,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const agenda = require('./agenda');
 
 const origEmitWarning = process.emitWarning;
 process.emitWarning = function (w, ...rest) {
@@ -39,6 +43,8 @@ const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const MAX_BACKUPS = 30;
 const MAX_BODY = 512 * 1024;           // één onderdeel is nooit groot
 const MAX_ITEMS = 20000;
+
+const AGENDA_AANTAL = agenda.stelIn([process.env.AGENDA_URL, process.env.AGENDA_URL_2]);
 
 if (!TOKEN) {
     console.error('Geen token ingesteld (SYNC_TOKEN). De server start niet zonder token.');
@@ -244,6 +250,20 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Afspraken uit Google Agenda (alleen lezen)
+        if (req.method === 'GET' && pad === '/api/agenda') {
+            const datum = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '');
+            const nu = new Date();
+            const vandaag = `${nu.getFullYear()}-${String(nu.getMonth() + 1).padStart(2, '0')}-${String(nu.getDate()).padStart(2, '0')}`;
+            const van = url.searchParams.get('from') || vandaag;
+            const tot = url.searchParams.get('to') || agenda.nrNaarDatum(agenda.datumNaarNr(van) + 13);
+            if (!datum(van) || !datum(tot)) { send(res, 400, { error: 'from en to moeten JJJJ-MM-DD zijn' }); return; }
+            const dagen = agenda.datumNaarNr(tot) - agenda.datumNaarNr(van);
+            if (dagen < 0 || dagen > 62) { send(res, 400, { error: 'Kies een bereik van 0 tot 62 dagen' }); return; }
+            send(res, 200, await agenda.afspraken(van, tot));
+            return;
+        }
+
         const m = pad.match(/^\/api\/items\/([^/]+)$/);
         if (m) {
             const id = decodeURIComponent(m[1]);
@@ -278,6 +298,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
     console.log(`Dagkompas Sync draait op poort ${PORT}. Gegevens in ${DATA_DIR}.`);
+    console.log(AGENDA_AANTAL ? `Agenda: ${AGENDA_AANTAL} ${AGENDA_AANTAL === 1 ? 'agenda' : 'agenda\'s'} ingesteld (alleen lezen).` : 'Agenda: niet ingesteld.');
 });
 
 function stop() {

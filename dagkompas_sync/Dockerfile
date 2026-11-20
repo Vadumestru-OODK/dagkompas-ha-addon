@@ -6,7 +6,7 @@ RUN apk add --no-cache tzdata
 ENV TZ=Europe/Amsterdam
 
 WORKDIR /app
-COPY server.js run.sh /app/
+COPY server.js agenda.js run.sh /app/
 RUN chmod +x /app/run.sh && sed -i 's/\r$//' /app/run.sh && node --version
 
 CMD [ "/app/run.sh" ]

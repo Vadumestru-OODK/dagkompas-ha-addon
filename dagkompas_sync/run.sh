@@ -14,6 +14,10 @@ echo "Node.js $(node --version)"
 
 SYNC_TOKEN="$(node -e "try { process.stdout.write(String(require('$OPTIES').token || '')) } catch (e) {}")"
 export SYNC_TOKEN
+AGENDA_URL="$(node -e "try { process.stdout.write(String(require('$OPTIES').agenda_url || '')) } catch (e) {}")"
+export AGENDA_URL
+AGENDA_URL_2="$(node -e "try { process.stdout.write(String(require('$OPTIES').agenda_url_2 || '')) } catch (e) {}")"
+export AGENDA_URL_2
 
 if [ -z "$SYNC_TOKEN" ]; then
     echo "Geen token ingesteld. Vul op het tabblad 'Configuratie' een lang, willekeurig token in, en start de add-on opnieuw."

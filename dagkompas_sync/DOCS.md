@@ -20,6 +20,24 @@ Samba-add-on open je die vanaf je pc via `\\homeassistant.local\share\dagkompas`
   Gebruik een lang, willekeurig token van minstens 16 tekens, en een ander token
   dan bij Opticien Sync.
 
+## Google Agenda (alleen lezen)
+
+Met de instelling **Agenda-adres** laat Dagkompas je afspraken zien op Vandaag en bij Week.
+De add-on haalt je agenda op via het geheime adres in iCal-indeling en geeft de afspraken door aan de app.
+Er wordt niets in je agenda gezet of gewijzigd.
+
+Het adres vind je zo:
+
+1. Open Google Agenda op een computer (in de app van je telefoon kan dit niet).
+2. Klik op het tandwiel en kies Instellingen.
+3. Kies links, onder "Instellingen voor mijn agenda's", de agenda die je wilt laten zien.
+4. Scroll naar "Geheim adres in iCal-indeling" en kopieer het adres.
+5. Plak het in deze add-on bij Configuratie, bij "Agenda-adres", sla op en start de add-on opnieuw.
+
+Let op: iedereen die dat adres heeft, kan je hele agenda lezen. Deel het dus niet en zet het nergens anders neer.
+Is het adres toch uitgelekt? Klik in Google Agenda bij hetzelfde scherm op "Geheim adres resetten" en plak het nieuwe adres in de add-on.
+De afspraken worden elke 10 minuten ververst. Het adres staat nooit in het logboek.
+
 ## Bereikbaar maken van buitenaf
 
 Maak in Nginx Proxy Manager een nieuwe proxy host, bijvoorbeeld

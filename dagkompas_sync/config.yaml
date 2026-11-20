@@ -1,7 +1,7 @@
 name: Dagkompas Sync
-version: "1.0.0"
+version: "1.1.0"
 slug: dagkompas_sync
-description: Privé opslag voor de planner Dagkompas (taken, dagritme, weekdoelen)
+description: Privé opslag voor de planner Dagkompas (taken, dagritme, weekdoelen) en optioneel je Google Agenda
 url: https://dagkompas.oodk.nl
 arch:
   - aarch64
@@ -18,5 +18,9 @@ map:
     read_only: false
 options:
   token: ""
+  agenda_url: ""
+  agenda_url_2: ""
 schema:
   token: password
+  agenda_url: password?
+  agenda_url_2: password?

@@ -8,5 +8,17 @@ configuration:
   agenda_url_2:
     name: Second calendar address (optional)
     description: A second calendar, for example a shared one. Leave empty to not use it.
+  melding_service:
+    name: Notification service (phone)
+    description: The name of your phone in Home Assistant, for example mobile_app_my_phone. Leave empty for no notifications.
+  melding_ochtend:
+    name: Time of the morning overview
+    description: Time as HH:MM, for example 07:45. Leave empty for none.
+  melding_avond:
+    name: Time of the evening reminder
+    description: Time as HH:MM, for example 20:00. Only sent when something is still open. Leave empty for none.
+  app_adres:
+    name: App address
+    description: Where tapping a notification goes, for example https://dagkompas.oodk.nl
 network:
   8092/tcp: Sync server for Dagkompas

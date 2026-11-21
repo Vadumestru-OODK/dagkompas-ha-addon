@@ -373,4 +373,4 @@ async function afspraken(van, tot) {
     return { ingesteld: true, agendas, events };
 }
 
-module.exports = { stelIn, afspraken, parseIcs, maakInstanties, datumNaarNr, nrNaarDatum };
+module.exports = { stelIn, afspraken, parseIcs, maakInstanties, datumNaarNr, nrNaarDatum, epochNaarLokaal };

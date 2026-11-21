@@ -8,5 +8,17 @@ configuration:
   agenda_url_2:
     name: Tweede agenda-adres (optioneel)
     description: Een tweede agenda, bijvoorbeeld van je partner of een gedeelde agenda. Leeg laten = niet gebruiken.
+  melding_service:
+    name: Melding-dienst (telefoon)
+    description: De naam van je telefoon in Home Assistant, bijvoorbeeld mobile_app_mijn_telefoon. Leeg laten = geen meldingen. Hoe je hem vindt staat in de documentatie van deze add-on.
+  melding_ochtend:
+    name: Tijd van het ochtendoverzicht
+    description: Tijd als UU:MM, bijvoorbeeld 07:45. Leeg laten = geen ochtendmelding.
+  melding_avond:
+    name: Tijd van de avondherinnering
+    description: Tijd als UU:MM, bijvoorbeeld 20:00. Je krijgt hem alleen als er nog iets openstaat. Leeg laten = geen avondmelding.
+  app_adres:
+    name: Adres van de app
+    description: Waar een tik op de melding naartoe gaat, bijvoorbeeld https://dagkompas.oodk.nl
 network:
   8092/tcp: Sync-server voor Dagkompas

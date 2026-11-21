@@ -38,6 +38,30 @@ Let op: iedereen die dat adres heeft, kan je hele agenda lezen. Deel het dus nie
 Is het adres toch uitgelekt? Klik in Google Agenda bij hetzelfde scherm op "Geheim adres resetten" en plak het nieuwe adres in de add-on.
 De afspraken worden elke 10 minuten ververst. Het adres staat nooit in het logboek.
 
+## Meldingen op je telefoon
+
+De add-on kan je via de Home Assistant-app op je telefoon een melding sturen:
+
+- **'s Ochtends** een kort overzicht: hoeveel afspraken je hebt en wanneer de eerste is, of je Top 3 klaarstaat,
+  hoeveel taken te laat zijn en welke gewoonte je aan het aanleren bent.
+- **'s Avonds** een herinnering, maar alleen als er nog iets openstaat: een gewoonte die je aan het aanleren bent
+  (met je kleinste versie) of een Top 3 die nog niet af is. Is alles gedaan, dan krijg je niets.
+
+In een melding staan alleen aantallen, tijden en de namen van je gewoontes. Namen van taken en afspraken staan er
+bewust niet in, omdat je ze anders op een vergrendeld scherm zou kunnen lezen.
+
+Instellen:
+
+1. Zorg dat de Home Assistant-app op je telefoon staat en dat je erin bent ingelogd.
+2. Open in Home Assistant **Ontwikkelaarstools**, dan het tabblad **Acties**.
+3. Typ in het zoekveld `notify.mobile_app`. Je ziet nu je telefoon staan, bijvoorbeeld `notify.mobile_app_mijn_telefoon`.
+4. Vul bij Configuratie van deze add-on bij **Melding-dienst** de naam in, zonder `notify.` ervoor
+   (dus `mobile_app_mijn_telefoon`). De tijden staan standaard op 07:45 en 20:00. Wis een tijd om die melding uit te zetten.
+5. Sla op en start de add-on opnieuw. Open daarna Dagkompas, ga naar Ritme en tik bij Meldingen op **Stuur testmelding**.
+
+Meldingen worden maximaal 90 minuten na de ingestelde tijd nog verstuurd, bijvoorbeeld als de add-on net herstart.
+Elke melding gaat per dag maar één keer.
+
 ## Bereikbaar maken van buitenaf
 
 Maak in Nginx Proxy Manager een nieuwe proxy host, bijvoorbeeld

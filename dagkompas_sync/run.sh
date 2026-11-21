@@ -18,6 +18,16 @@ AGENDA_URL="$(node -e "try { process.stdout.write(String(require('$OPTIES').agen
 export AGENDA_URL
 AGENDA_URL_2="$(node -e "try { process.stdout.write(String(require('$OPTIES').agenda_url_2 || '')) } catch (e) {}")"
 export AGENDA_URL_2
+# Meldingen via Home Assistant. De naam van de dienst vind je in Ontwikkelaarstools > Acties (zie DOCS.md).
+for sleutel in melding_service melding_ochtend melding_avond app_adres; do
+    waarde="$(node -e "try { process.stdout.write(String(require('$OPTIES').$sleutel || '')) } catch (e) {}")"
+    case "$sleutel" in
+        melding_service) export MELDING_SERVICE="$waarde" ;;
+        melding_ochtend) export MELDING_OCHTEND="$waarde" ;;
+        melding_avond)   export MELDING_AVOND="$waarde" ;;
+        app_adres)       export APP_ADRES="$waarde" ;;
+    esac
+done
 
 if [ -z "$SYNC_TOKEN" ]; then
     echo "Geen token ingesteld. Vul op het tabblad 'Configuratie' een lang, willekeurig token in, en start de add-on opnieuw."

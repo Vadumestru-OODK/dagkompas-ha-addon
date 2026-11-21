@@ -8,6 +8,8 @@
 //   - Verwijderen gebeurt met een markering, zodat andere toestellen het ook horen.
 //   - Elke dag een kopie van de database in de map 'backups' (laatste 30 dagen).
 //
+//   - Optioneel: stuurt meldingen via Home Assistant naar je telefoon (dagoverzicht 's ochtends,
+//     herinnering 's avonds als er nog iets openstaat). Zie meldingen.js.
 //   - Optioneel: leest je Google Agenda (alleen lezen) via het geheime iCal-adres en geeft de afspraken
 //     per dag aan de app (GET /api/agenda). Zie agenda.js.
 //
@@ -19,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const agenda = require('./agenda');
+const meldingen = require('./meldingen');
 
 const origEmitWarning = process.emitWarning;
 process.emitWarning = function (w, ...rest) {
@@ -77,6 +80,9 @@ const qPut = db.prepare(`INSERT INTO items (id, data, verwijderd, seq, gewijzigd
 const qGet = db.prepare(`SELECT data, verwijderd FROM items WHERE id = ?`);
 const qAantal = db.prepare(`SELECT COUNT(*) AS n FROM items WHERE verwijderd = 0`);
 // Markeringen van verwijderde onderdelen ouder dan een jaar mogen weg
+const qMetaGet = db.prepare(`SELECT waarde FROM meta WHERE sleutel = ?`);
+const qMetaSet = db.prepare(`INSERT INTO meta (sleutel, waarde) VALUES (?, ?) ON CONFLICT(sleutel) DO UPDATE SET waarde = excluded.waarde`);
+const qAlleItems = db.prepare(`SELECT data FROM items WHERE verwijderd = 0`);
 const qOpruimen = db.prepare(`DELETE FROM items WHERE verwijderd = 1 AND gewijzigd < ?`);
 
 function huidigeSeq() {
@@ -103,6 +109,29 @@ function schrijf(id, data) {
         db.exec('ROLLBACK');
         throw e;
     }
+}
+
+// --- Meldingen via Home Assistant ---
+
+const MELDING_DIENST = meldingen.schoneDienst(process.env.MELDING_SERVICE);
+if (String(process.env.MELDING_SERVICE || '').trim() && !MELDING_DIENST) {
+    console.warn('Melding-dienst overgeslagen: de naam mag alleen kleine letters, cijfers en _ bevatten (bijvoorbeeld mobile_app_mijn_telefoon).');
+}
+const MELDING_AAN = !!(MELDING_DIENST && process.env.SUPERVISOR_TOKEN);
+const MELDING_TIJDEN = { ochtend: meldingen.geldigeTijd(process.env.MELDING_OCHTEND), avond: meldingen.geldigeTijd(process.env.MELDING_AVOND) };
+const stuurMelding = MELDING_AAN ? meldingen.maakVersturen({
+    apiUrl: process.env.HA_API_URL || 'http://supervisor/core/api',
+    token: process.env.SUPERVISOR_TOKEN, dienst: MELDING_DIENST, appAdres: process.env.APP_ADRES
+}) : null;
+if (MELDING_AAN) {
+    const planner = meldingen.maakPlanner({
+        leesItems: () => qAlleItems.all().map(r => { try { return JSON.parse(r.data); } catch (e) { return null; } }).filter(Boolean),
+        haalAfspraken: (van, tot) => agenda.afspraken(van, tot),
+        stuur: stuurMelding, tijden: MELDING_TIJDEN,
+        getLaatst: soort => { const r = qMetaGet.get('melding_' + soort); return r ? r.waarde : ''; },
+        setLaatst: (soort, datum) => qMetaSet.run('melding_' + soort, datum)
+    });
+    setInterval(() => { planner.controleer().catch(e => console.warn('Meldingen: ' + e.message)); }, 30 * 1000).unref();
 }
 
 // --- Dagelijkse backup ---
@@ -135,7 +164,7 @@ setInterval(maakBackup, 60 * 60 * 1000).unref();
 const CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Max-Age': '600'
 };
 
@@ -250,6 +279,23 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Staat het versturen van meldingen aan? (de naam van de dienst blijft binnen de add-on)
+        if (req.method === 'GET' && pad === '/api/melding') {
+            send(res, 200, { ingesteld: MELDING_AAN, ochtend: MELDING_AAN ? MELDING_TIJDEN.ochtend : '', avond: MELDING_AAN ? MELDING_TIJDEN.avond : '' });
+            return;
+        }
+        if (req.method === 'POST' && pad === '/api/melding-test') {
+            if (!MELDING_AAN) { send(res, 400, { error: 'Meldingen zijn nog niet ingesteld in de add-on.' }); return; }
+            try {
+                await stuurMelding({ title: 'Dagkompas', message: 'Testmelding. Als je dit leest, werken je meldingen.' });
+                send(res, 200, { ok: true });
+            } catch (e) {
+                console.warn(`${new Date().toLocaleString('nl-NL')}: testmelding mislukt: ${e.message}`);
+                send(res, 502, { error: 'Home Assistant weigerde de melding. Klopt de naam van de melding-dienst?' });
+            }
+            return;
+        }
+
         // Afspraken uit Google Agenda (alleen lezen)
         if (req.method === 'GET' && pad === '/api/agenda') {
             const datum = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '');
@@ -298,6 +344,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
     console.log(`Dagkompas Sync draait op poort ${PORT}. Gegevens in ${DATA_DIR}.`);
+    console.log(MELDING_AAN ? `Meldingen: aan (ochtend ${MELDING_TIJDEN.ochtend || 'uit'}, avond ${MELDING_TIJDEN.avond || 'uit'}).` : 'Meldingen: niet ingesteld.');
     console.log(AGENDA_AANTAL ? `Agenda: ${AGENDA_AANTAL} ${AGENDA_AANTAL === 1 ? 'agenda' : 'agenda\'s'} ingesteld (alleen lezen).` : 'Agenda: niet ingesteld.');
 });
 
